@@ -22,17 +22,16 @@ const APPLE: &'static str = "▒";
 
 /// The game over screen.
 const WELCOME: &'static str = "╔═══════════════════╗\n\r\
-                                 ║──────WELCOME──────║\n\r\
-                                 ║ space :  to start ║\n\r\
-                                 ║ q     :  quit     ║\n\r\
-                                 ╚═══════════════════╝";
+                               ║──────WELCOME────── ║\n\r\
+                               ║ space :  to start   ║\n\r\
+                               ║ q     :  quit       ║\n\r\
+                               ╚═══════════════════╝";
 
 struct Chainake<R: Read, W: Write> {
     board: Board,
     stdout: W,
     stdin: R,
 }
-
 
 /// A snake application written with rust
 impl<R: Read, W: Write> Chainake<R, W> {
@@ -56,30 +55,34 @@ impl<R: Read, W: Write> Chainake<R, W> {
                                 &91 => {
                                     match buf.get(2).unwrap() {
                                         /*TOP*/
-                                        &65 => { println!("TOP") }
+                                        &65 => println!("UP"),
                                         /*BOTTOM*/
-                                        &66 => { println!("BOTTOM") }
+                                        &66 => println!("DOWN"),
                                         /*RIGHT*/
-                                        &67 => { println!("RIGHT") }
+                                        &67 => println!("RIGHT"),
                                         /*LEFT*/
-                                        &68 => { println!("LEFT") }
+                                        &68 => println!("LEFT"),
                                         _ => {}
                                     }
                                 }
-                                &0 => { break; }
+                                &0 => {
+                                    break;
+                                }
                                 _ => {}
                             }
                         }
                         /*W*/
-                        &119=>{}
+                        &119 => println!("UP"),
                         /*S*/
-                        &115=>{}
+                        &115 => println!("DOWN"),
                         /*D*/
-                        &100=>{}
+                        &100 => println!("RIGHT"),
                         /*A*/
-                        &97=>{}
+                        &97 => println!("LEFT"),
+                        &32 => println!("START"),
                         _ => {
-                            self.stdout.write(&format!("Pressed: {:?}\n", &buf).as_bytes());
+                            self.stdout
+                                .write(&format!("Pressed: {:?}\n", &buf).as_bytes());
                             self.stdout.flush();
                         }
                     }
@@ -97,17 +100,20 @@ impl<R: Read, W: Write> Chainake<R, W> {
 
 fn main() {
     let stdout = io::stdout();
-    let mut stdout = stdout.lock();
+    stdout.lock();
     let stdin = io::stdin();
     let stdin = stdin.lock();
     let stderr = io::stderr();
-    let mut stderr = stderr.lock();
+    stderr.lock();
     let stdout = stdout.into_raw_mode().unwrap();
     let term_size = termion::terminal_size().ok();
     let term_width = term_size.map(|(w, _)| w - 2);
     let term_height = term_size.map(|(_, h)| h - 2);
     let mut game = Chainake {
-        board: Board { width: term_width.unwrap(), height: term_height.unwrap() },
+        board: Board {
+            width: term_width.unwrap(),
+            height: term_height.unwrap(),
+        },
         stdin,
         stdout,
     };
