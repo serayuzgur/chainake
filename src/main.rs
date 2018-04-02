@@ -1,14 +1,9 @@
 extern crate termion;
 
-use termion::{clear, cursor, style};
+use termion::{clear};
 use termion::raw::IntoRawMode;
-use termion::input::TermRead;
-use termion::event::Key;
 
-use std::env;
 use std::io::{self, Read, Write};
-use std::process;
-use std::iter::Iterator;
 
 mod board;
 
@@ -19,13 +14,6 @@ const SNAKE: &'static str = "▓";
 
 /// The string printed for concealed cells.
 const APPLE: &'static str = "▒";
-
-/// The game over screen.
-const WELCOME: &'static str = "╔═══════════════════╗\n\r\
-                               ║──────WELCOME────── ║\n\r\
-                               ║ space :  to start   ║\n\r\
-                               ║ q     :  quit       ║\n\r\
-                               ╚═══════════════════╝";
 
 struct Chainake<R: Read, W: Write> {
     board: Board,
@@ -43,7 +31,7 @@ impl<R: Read, W: Write> Chainake<R, W> {
 
     fn start(&mut self) {
         write!(&mut self.stdout, "{}", clear::All).unwrap();
-        self.stdout.flush();
+        self.board.draw(&mut self.stdout);
         loop {
             let mut buf: [u8; 3] = [0, 0, 0];
             match self.stdin.read(&mut buf) {
