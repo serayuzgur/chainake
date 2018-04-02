@@ -1,0 +1,9 @@
+[package]
+name = "chainake"
+description = "A snake game written with rust."
+version = "0.0.1-alpha.1"
+authors = ["Seray Uzgur <serayuzgur@gmail.com>"]
+keywords=["snake","game"]
+
+[dependencies]
+termion="1.5.1"
