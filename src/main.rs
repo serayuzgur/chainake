@@ -1,22 +1,22 @@
 extern crate termion;
 
-use termion::{clear};
+use termion::clear;
 use termion::raw::IntoRawMode;
 
 use std::io::{self, Read, Write};
 
 mod board;
+mod snake;
 
 use board::Board;
-
-/// The string printed for flagged cells.
-const SNAKE: &'static str = "▓";
+use snake::Snake;
 
 /// The string printed for concealed cells.
 const APPLE: &'static str = "▒";
 
 struct Chainake<R: Read, W: Write> {
     board: Board,
+    snake: Snake,
     stdout: W,
     stdin: R,
 }
@@ -29,9 +29,15 @@ impl<R: Read, W: Write> Chainake<R, W> {
         self.start();
     }
 
+    fn draw(&mut self){
+        self.board.draw(&mut self.stdout);
+        self.snake.draw(&mut self.stdout);
+        self.stdout.flush();
+    }
+
     fn start(&mut self) {
         write!(&mut self.stdout, "{}", clear::All).unwrap();
-        self.board.draw(&mut self.stdout);
+        self.draw();
         loop {
             let mut buf: [u8; 3] = [0, 0, 0];
             match self.stdin.read(&mut buf) {
@@ -43,13 +49,13 @@ impl<R: Read, W: Write> Chainake<R, W> {
                                 &91 => {
                                     match buf.get(2).unwrap() {
                                         /*TOP*/
-                                        &65 => println!("UP"),
+                                        &65 => self.snake.move_1(snake::Direction::UP),
                                         /*BOTTOM*/
-                                        &66 => println!("DOWN"),
+                                        &66 => self.snake.move_1(snake::Direction::DOWN),
                                         /*RIGHT*/
-                                        &67 => println!("RIGHT"),
+                                        &67 => self.snake.move_1(snake::Direction::RIGHT),
                                         /*LEFT*/
-                                        &68 => println!("LEFT"),
+                                        &68 => self.snake.move_1(snake::Direction::LEFT),
                                         _ => {}
                                     }
                                 }
@@ -60,13 +66,13 @@ impl<R: Read, W: Write> Chainake<R, W> {
                             }
                         }
                         /*W*/
-                        &119 => println!("UP"),
+                        &119 => self.snake.move_1(snake::Direction::UP),
                         /*S*/
-                        &115 => println!("DOWN"),
+                        &115 => self.snake.move_1(snake::Direction::DOWN),
                         /*D*/
-                        &100 => println!("RIGHT"),
+                        &100 => self.snake.move_1(snake::Direction::RIGHT),
                         /*A*/
-                        &97 => println!("LEFT"),
+                        &97 => self.snake.move_1(snake::Direction::LEFT),
                         &32 => println!("START"),
                         _ => {
                             self.stdout
@@ -74,6 +80,7 @@ impl<R: Read, W: Write> Chainake<R, W> {
                             self.stdout.flush();
                         }
                     }
+                    self.draw();
                 }
                 Err(error) => {
                     self.stdout.write(&format!("Error: {}", error).as_bytes());
@@ -82,6 +89,7 @@ impl<R: Read, W: Write> Chainake<R, W> {
             }
         }
         self.stdout.write("Exiting".as_bytes());
+        write!(&mut self.stdout, "{}", clear::All).unwrap();
         self.stdout.flush();
     }
 }
@@ -101,6 +109,15 @@ fn main() {
         board: Board {
             width: term_width.unwrap(),
             height: term_height.unwrap(),
+        },
+        snake: Snake {
+            body: vec![
+                snake::Point {
+                    x: (term_width.unwrap() / 2) as i8,
+                    y: (term_height.unwrap() / 2) as i8,
+                },
+            ],
+            direction: snake::Direction::RIGHT,
         },
         stdin,
         stdout,
