@@ -1,4 +1,5 @@
 extern crate termion;
+extern crate rand;
 
 use termion::{clear,style,cursor,async_stdin};
 use termion::raw::IntoRawMode;
@@ -10,17 +11,17 @@ use std::time::Duration;
 
 mod board;
 mod snake;
+mod apple;
 mod cell;
 
 use board::Board;
 use snake::Snake;
-
-/// The string printed for concealed cells.
-const APPLE: &'static str = "@";
+use apple::Apple;
 
 struct Chainake {
     board: Board,
     snake: Snake,
+    apple: Apple
 }
 /// A snake application written with rust
 impl Chainake {
@@ -29,18 +30,21 @@ impl Chainake {
         self.start();
     }
 
-    fn draw(&mut self){
+    fn draw(&mut self, only_snake: bool){
         let stdout = io::stdout();
         let mut stdout = stdout.lock().into_raw_mode().unwrap();
-        write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1)).unwrap();
-        self.board.draw(&mut stdout);
+        if !only_snake {
+            write!(stdout, "{}{}{}", clear::All, style::Reset, cursor::Goto(1, 1)).unwrap();
+            self.board.draw(&mut stdout);
+        }
+        self.apple.draw(&mut stdout);
         self.snake.draw(&mut stdout);
         stdout.flush();
     }
 
     fn start(&mut self) {
   
-        self.draw();
+        self.draw(false);
         let mut stdin = async_stdin();
         loop {
             let mut buf: [u8; 3] = [0, 0, 0];
@@ -91,12 +95,16 @@ impl Chainake {
                 }
             }
             thread::sleep(Duration::from_millis(500));
-            &self.snake.move_1();
-            // &self.draw();
-            let stdout = io::stdout();
-            let mut stdout = stdout.lock().into_raw_mode().unwrap();
-            self.snake.draw(&mut stdout);
-            stdout.flush();
+            if self.snake.is_colliding(1, 1, &self.board.width-1, self.board.height-1) {
+                break;
+            }
+            if self.snake.at(self.apple.position.x, self.apple.position.y) {
+                self.apple.renew();
+                &self.snake.move_1(true);
+            }else {
+                &self.snake.move_1(false);
+            }
+            &self.draw(true);
         }
 
     }
@@ -116,7 +124,8 @@ fn main() {
             term_width.unwrap(),
             term_height.unwrap(),
         ),
-        snake: Snake::new(term_width.unwrap() / 2 ,term_height.unwrap() / 2)
+        snake: Snake::new(term_width.unwrap() / 2 ,term_height.unwrap() / 2),
+        apple: Apple::new(term_width.unwrap(),term_height.unwrap())
     };
     game.play(1);
 }
