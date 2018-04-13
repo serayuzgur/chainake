@@ -1,6 +1,8 @@
 # Chainake
 A snake game written with rust.
 
+![screenshot](./chainake.png)
+
 **NOTE:** UNDER DEVELOPMENT, Not even an alpha.
 
 
