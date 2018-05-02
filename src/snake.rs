@@ -63,16 +63,16 @@ impl Snake {
         };
 
         match &self.direction {
-            Direction::UP => {
+            &Direction::UP => {
                 next.y = last.y.saturating_sub(1);
             }
-            Direction::RIGHT => {
+            &Direction::RIGHT => {
                 next.x = last.x.saturating_add(1);
             }
-            Direction::DOWN => {
+            &Direction::DOWN => {
                 next.y = last.y.saturating_add(1);
             }
-            Direction::LEFT => {
+            &Direction::LEFT => {
                 next.x = last.x.saturating_sub(1);
             }
         };
